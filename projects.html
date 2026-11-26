@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project Dashboard</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #1d2330;
+      --muted: #6b7280;
+      --border: #e3e6eb;
+      --accent: #3b5bdb;
+      --ok: #2f9e44;
+      --warn: #e8590c;
+      --block: #c92a2a;
+      --idle: #868e96;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #14161b;
+        --surface: #1d2028;
+        --text: #e6e8ec;
+        --muted: #9aa1ad;
+        --border: #2c313b;
+        --accent: #748ffc;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #14161b;
+      --surface: #1d2028;
+      --text: #e6e8ec;
+      --muted: #9aa1ad;
+      --border: #2c313b;
+      --accent: #748ffc;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 32px 16px; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 24px; }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    }
+    .toolbar input, .toolbar select {
+      font: inherit; color: var(--text); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+      min-height: 40px;
+    }
+    .toolbar input { flex: 1 1 220px; }
+
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px; margin-bottom: 16px;
+    }
+    .stat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px;
+    }
+    .stat b { display: block; font-size: 22px; }
+    .stat span { color: var(--muted); font-size: 13px; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 560px; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    tr:last-child td { border-bottom: none; }
+
+    .pill {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 13px; font-weight: 600; color: #fff;
+    }
+    .s-done { background: var(--ok); }
+    .s-progress { background: var(--accent); }
+    .s-blocked { background: var(--block); }
+    .s-notstarted { background: var(--idle); }
+
+    .bar { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; min-width: 100px; }
+    .bar > i { display: block; height: 100%; background: var(--accent); }
+
+    .state { padding: 24px; color: var(--muted); text-align: center; }
+    .error { color: var(--block); }
+    button {
+      font: inherit; margin-top: 8px; padding: 8px 14px; min-height: 40px;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Project dashboard</h1>
+    <p class="sub">Live data from <code>/.netlify/functions/items</code></p>
+
+    <section class="stats" aria-label="Summary">
+      <div class="stat"><b id="stat-total">–</b><span>Total</span></div>
+      <div class="stat"><b id="stat-progress">–</b><span>In progress</span></div>
+      <div class="stat"><b id="stat-blocked">–</b><span>Blocked</span></div>
+      <div class="stat"><b id="stat-done">–</b><span>Done</span></div>
+    </section>
+
+    <form class="toolbar" role="search" onsubmit="return false">
+      <input id="q" type="search" placeholder="Search by name, ID or owner" aria-label="Search">
+      <select id="status" aria-label="Filter by status">
+        <option value="">All statuses</option>
+        <option>Not started</option>
+        <option>In progress</option>
+        <option>Blocked</option>
+        <option>Done</option>
+      </select>
+    </form>
+
+    <div class="card" id="list" aria-live="polite">
+      <div class="state">Loading…</div>
+    </div>
+  </main>
+
+  <script>
+    const ENDPOINT = "/.netlify/functions/items";
+    const listEl = document.getElementById("list");
+    let rows = [];
+
+    const statusClass = {
+      "Done": "s-done",
+      "In progress": "s-progress",
+      "Blocked": "s-blocked",
+      "Not started": "s-notstarted",
+    };
+
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function render() {
+      const q = document.getElementById("q").value.trim().toLowerCase();
+      const status = document.getElementById("status").value;
+
+      const visible = rows.filter((r) =>
+        (!status || r.status === status) &&
+        (!q || [r.id, r.name, r.owner].join(" ").toLowerCase().includes(q)));
+
+      if (!visible.length) {
+        listEl.innerHTML = '<div class="state">No matching items.</div>';
+        return;
+      }
+
+      const body = visible.map((r) => `
+        <tr>
+          <td>${esc(r.id)}</td>
+          <td>${esc(r.name)}</td>
+          <td>${esc(r.owner)}</td>
+          <td><span class="pill ${statusClass[r.status] || "s-notstarted"}">${esc(r.status)}</span></td>
+          <td>
+            <div class="bar" role="progressbar" aria-label="Progress" aria-valuenow="${Number(r.progress)}" aria-valuemin="0" aria-valuemax="100">
+              <i style="width:${Number(r.progress)}%"></i>
+            </div>
+          </td>
+          <td>${esc(r.updated)}</td>
+        </tr>`).join("");
+
+      listEl.innerHTML = `
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Name</th><th>Owner</th><th>Status</th><th>Progress</th><th>Updated</th>
+          </tr></thead>
+          <tbody>${body}</tbody>
+        </table>`;
+    }
+
+    function updateStats() {
+      const count = (s) => rows.filter((r) => r.status === s).length;
+      document.getElementById("stat-total").textContent = rows.length;
+      document.getElementById("stat-progress").textContent = count("In progress");
+      document.getElementById("stat-blocked").textContent = count("Blocked");
+      document.getElementById("stat-done").textContent = count("Done");
+    }
+
+    async function load() {
+      listEl.innerHTML = '<div class="state">Loading…</div>';
+      try {
+        const res = await fetch(ENDPOINT, { headers: { Accept: "application/json" } });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        rows = data.items;
+        updateStats();
+        render();
+      } catch (err) {
+        listEl.innerHTML = `
+          <div class="state error">Could not load items.
+            <div><button id="retry" type="button">Try again</button></div>
+          </div>`;
+        document.getElementById("retry").addEventListener("click", load);
+      }
+    }
+
+    document.getElementById("q").addEventListener("input", render);
+    document.getElementById("status").addEventListener("change", render);
+    load();
+  </script>
+</body>
+</html>

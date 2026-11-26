@@ -3,210 +3,214 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Project Dashboard</title>
+  <title>The Traveler</title>
   <style>
     :root {
-      --bg: #f6f7f9;
-      --surface: #ffffff;
-      --text: #1d2330;
-      --muted: #6b7280;
-      --border: #e3e6eb;
-      --accent: #3b5bdb;
-      --ok: #2f9e44;
-      --warn: #e8590c;
+      --bg: #f6f7f9; --surface: #ffffff; --text: #1d2330; --muted: #6b7280;
+      --border: #e3e6eb; --accent: #3b5bdb; --good: #2f9e44; --good-bg: #e6f6ea;
       --block: #c92a2a;
-      --idle: #868e96;
     }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
-        --bg: #14161b;
-        --surface: #1d2028;
-        --text: #e6e8ec;
-        --muted: #9aa1ad;
-        --border: #2c313b;
-        --accent: #748ffc;
+        --bg: #14161b; --surface: #1d2028; --text: #e6e8ec; --muted: #9aa1ad;
+        --border: #2c313b; --accent: #748ffc; --good: #51cf66; --good-bg: #1c3324;
       }
     }
     :root[data-theme="dark"] {
-      --bg: #14161b;
-      --surface: #1d2028;
-      --text: #e6e8ec;
-      --muted: #9aa1ad;
-      --border: #2c313b;
-      --accent: #748ffc;
+      --bg: #14161b; --surface: #1d2028; --text: #e6e8ec; --muted: #9aa1ad;
+      --border: #2c313b; --accent: #748ffc; --good: #51cf66; --good-bg: #1c3324;
     }
-
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    main { max-width: 960px; margin: 0 auto; padding: 32px 16px; }
-    h1 { font-size: 22px; margin: 0 0 4px; }
-    .sub { color: var(--muted); margin: 0 0 24px; }
+    body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+    main { max-width: 980px; margin: 0 auto; padding: 32px 16px; }
+    nav { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    nav a { color: var(--accent); font-size: 14px; }
+    h1 { font-size: 22px; margin: 0; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
 
-    .toolbar {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    .notice {
+      background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+      border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px;
     }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: end; }
+    .toolbar label { display: flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 2px; }
     .toolbar input, .toolbar select {
-      font: inherit; color: var(--text); background: var(--surface);
-      border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
-      min-height: 40px;
+      font: inherit; font-size: 15px; color: var(--text); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-height: 40px;
     }
-    .toolbar input { flex: 1 1 220px; }
-
-    .stats {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px; margin-bottom: 16px;
-    }
-    .stat {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px;
-    }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
     .stat b { display: block; font-size: 22px; }
     .stat span { color: var(--muted); font-size: 13px; }
 
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; overflow-x: auto;
-    }
-    table { width: 100%; border-collapse: collapse; min-width: 560px; }
-    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 640px; }
+    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
     th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    th button { all: unset; cursor: pointer; text-transform: inherit; letter-spacing: inherit; }
+    th button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     tr:last-child td { border-bottom: none; }
-
-    .pill {
-      display: inline-block; padding: 2px 10px; border-radius: 999px;
-      font-size: 13px; font-weight: 600; color: #fff;
+    tr.best td { background: var(--good-bg); }
+    .price-in { width: 96px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; min-height: 36px; }
+    a.btn {
+      display: inline-block; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--accent); text-decoration: none; font-size: 14px; margin-right: 6px; min-height: 36px; line-height: 22px;
     }
-    .s-done { background: var(--ok); }
-    .s-progress { background: var(--accent); }
-    .s-blocked { background: var(--block); }
-    .s-notstarted { background: var(--idle); }
-
-    .bar { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; min-width: 100px; }
-    .bar > i { display: block; height: 100%; background: var(--accent); }
-
+    a.btn:hover { background: var(--bg); }
     .state { padding: 24px; color: var(--muted); text-align: center; }
     .error { color: var(--block); }
-    button {
-      font: inherit; margin-top: 8px; padding: 8px 14px; min-height: 40px;
-      border-radius: 8px; border: 1px solid var(--border);
-      background: var(--surface); color: var(--text); cursor: pointer;
-    }
+    .tag { font-size: 12px; color: var(--good); font-weight: 600; margin-left: 6px; }
+    button.retry { font: inherit; margin-top: 8px; padding: 8px 14px; min-height: 40px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
   </style>
 </head>
 <body>
   <main>
-    <h1>Project dashboard</h1>
-    <p class="sub">Live data from <code>/.netlify/functions/items</code></p>
+    <nav>
+      <h1>The Traveler</h1>
+      <a href="projects.html">Projects dashboard</a>
+    </nav>
+    <p class="sub" id="route-line">Round trips: Berlin to Buenos Aires</p>
 
-    <section class="stats" aria-label="Summary">
-      <div class="stat"><b id="stat-total">–</b><span>Total</span></div>
-      <div class="stat"><b id="stat-progress">–</b><span>In progress</span></div>
-      <div class="stat"><b id="stat-blocked">–</b><span>Blocked</span></div>
-      <div class="stat"><b id="stat-done">–</b><span>Done</span></div>
-    </section>
+    <div class="notice" id="notice">Loading…</div>
 
-    <form class="toolbar" role="search" onsubmit="return false">
-      <input id="q" type="search" placeholder="Search by name, ID or owner" aria-label="Search">
-      <select id="status" aria-label="Filter by status">
-        <option value="">All statuses</option>
-        <option>Not started</option>
-        <option>In progress</option>
-        <option>Blocked</option>
-        <option>Done</option>
-      </select>
+    <form class="toolbar" onsubmit="return false">
+      <label>From
+        <select id="origin"><option value="BER">Berlin (BER)</option></select>
+      </label>
+      <label>To
+        <select id="dest">
+          <option value="BUE">Buenos Aires, all airports (BUE)</option>
+          <option value="EZE">Ezeiza (EZE)</option>
+          <option value="AEP">Aeroparque (AEP)</option>
+        </select>
+      </label>
+      <label>Departure month
+        <input id="month" type="month" value="2027-04">
+      </label>
+      <label>Nights away
+        <input id="nights" type="number" min="1" max="60" value="13" style="width:90px">
+      </label>
     </form>
 
-    <div class="card" id="list" aria-live="polite">
-      <div class="state">Loading…</div>
-    </div>
+    <section class="stats" aria-label="Summary">
+      <div class="stat"><b id="stat-best">–</b><span>Cheapest price you entered</span></div>
+      <div class="stat"><b id="stat-date">–</b><span>Cheapest departure date</span></div>
+      <div class="stat"><b id="stat-count">–</b><span>Dates with a price</span></div>
+      <div class="stat"><b id="stat-est">–</b><span>Typical estimate (not live)</span></div>
+    </section>
+
+    <div class="card" id="list" aria-live="polite"><div class="state">Loading…</div></div>
   </main>
 
   <script>
-    const ENDPOINT = "/.netlify/functions/items";
+    const ENDPOINT = "/.netlify/functions/flights";
     const listEl = document.getElementById("list");
-    let rows = [];
+    const $ = (id) => document.getElementById(id);
+    let data = null;
+    let sortBy = "date"; // "date" | "price"
 
-    const statusClass = {
-      "Done": "s-done",
-      "In progress": "s-progress",
-      "Blocked": "s-blocked",
-      "Not started": "s-notstarted",
-    };
-
-    function esc(value) {
-      return String(value).replace(/[&<>"']/g, (c) =>
+    function esc(v) {
+      return String(v).replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
+    // Prices you type are kept in this browser only.
+    function storeKey() { return `traveler:${data.origin}-${data.dest}:${data.month}:${data.nights}`; }
+    function readSaved() {
+      try { return JSON.parse(localStorage.getItem(storeKey()) || "{}"); } catch (e) { return {}; }
+    }
+    function writeSaved(obj) {
+      try { localStorage.setItem(storeKey(), JSON.stringify(obj)); } catch (e) { /* storage blocked: still works for this visit */ }
+    }
+    let saved = {};
+
+    function priceOf(row) {
+      if (saved[row.departure] != null) return saved[row.departure];
+      return row.price;
+    }
+    function money(n) { return "€" + Math.round(n).toLocaleString("en-GB"); }
+
     function render() {
-      const q = document.getElementById("q").value.trim().toLowerCase();
-      const status = document.getElementById("status").value;
+      const priced = data.rows.map((r) => ({ r, p: priceOf(r) }));
+      const withPrice = priced.filter((x) => x.p != null);
+      const best = withPrice.length ? withPrice.reduce((a, b) => (b.p < a.p ? b : a)) : null;
 
-      const visible = rows.filter((r) =>
-        (!status || r.status === status) &&
-        (!q || [r.id, r.name, r.owner].join(" ").toLowerCase().includes(q)));
+      $("stat-best").textContent = best ? money(best.p) : "–";
+      $("stat-date").textContent = best ? best.r.departure : "–";
+      $("stat-count").textContent = `${withPrice.length} / ${data.count}`;
+      $("stat-est").textContent = data.estimate ? `€${data.estimate.min}–${data.estimate.max}` : "–";
 
-      if (!visible.length) {
-        listEl.innerHTML = '<div class="state">No matching items.</div>';
-        return;
+      const rows = priced.slice();
+      if (sortBy === "price") {
+        rows.sort((a, b) => (a.p == null) - (b.p == null) || a.p - b.p);
       }
 
-      const body = visible.map((r) => `
-        <tr>
-          <td>${esc(r.id)}</td>
-          <td>${esc(r.name)}</td>
-          <td>${esc(r.owner)}</td>
-          <td><span class="pill ${statusClass[r.status] || "s-notstarted"}">${esc(r.status)}</span></td>
+      const body = rows.map(({ r, p }) => `
+        <tr class="${best && r.departure === best.r.departure ? "best" : ""}">
+          <td>${esc(r.weekday)} ${esc(r.departure)}${best && r.departure === best.r.departure ? '<span class="tag">Cheapest</span>' : ""}</td>
+          <td>${esc(r.return)}</td>
+          <td><input class="price-in" type="number" min="0" inputmode="numeric" placeholder="€"
+                aria-label="Price in euros for departure ${esc(r.departure)}"
+                data-date="${esc(r.departure)}" value="${p != null ? p : ""}"></td>
           <td>
-            <div class="bar" role="progressbar" aria-label="Progress" aria-valuenow="${Number(r.progress)}" aria-valuemin="0" aria-valuemax="100">
-              <i style="width:${Number(r.progress)}%"></i>
-            </div>
+            <a class="btn" href="${esc(r.kayak)}" target="_blank" rel="noopener noreferrer">Kayak</a>
+            <a class="btn" href="${esc(r.google)}" target="_blank" rel="noopener noreferrer">Google Flights</a>
           </td>
-          <td>${esc(r.updated)}</td>
         </tr>`).join("");
 
       listEl.innerHTML = `
         <table>
           <thead><tr>
-            <th>ID</th><th>Name</th><th>Owner</th><th>Status</th><th>Progress</th><th>Updated</th>
+            <th><button type="button" data-sort="date">Departure${sortBy === "date" ? " ▲" : ""}</button></th>
+            <th>Return</th>
+            <th><button type="button" data-sort="price">Price (round trip)${sortBy === "price" ? " ▲" : ""}</button></th>
+            <th>Check live price</th>
           </tr></thead>
           <tbody>${body}</tbody>
         </table>`;
     }
 
-    function updateStats() {
-      const count = (s) => rows.filter((r) => r.status === s).length;
-      document.getElementById("stat-total").textContent = rows.length;
-      document.getElementById("stat-progress").textContent = count("In progress");
-      document.getElementById("stat-blocked").textContent = count("Blocked");
-      document.getElementById("stat-done").textContent = count("Done");
-    }
+    listEl.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-sort]");
+      if (b) { sortBy = b.dataset.sort; render(); }
+    });
+    listEl.addEventListener("change", (e) => {
+      const input = e.target.closest("input.price-in");
+      if (!input) return;
+      const v = input.value.trim();
+      if (v === "" || !(Number(v) >= 0)) delete saved[input.dataset.date];
+      else saved[input.dataset.date] = Number(v);
+      writeSaved(saved);
+      render();
+    });
 
     async function load() {
+      const params = new URLSearchParams({
+        origin: $("origin").value, dest: $("dest").value,
+        month: $("month").value, nights: $("nights").value,
+      });
       listEl.innerHTML = '<div class="state">Loading…</div>';
       try {
-        const res = await fetch(ENDPOINT, { headers: { Accept: "application/json" } });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        rows = data.items;
-        updateStats();
+        const res = await fetch(`${ENDPOINT}?${params}`, { headers: { Accept: "application/json" } });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || "HTTP " + res.status);
+        data = body;
+        saved = readSaved();
+        $("route-line").textContent =
+          `Round trips: ${data.origin} to ${data.dest}, ${data.nights} nights, departing ${data.month}`;
+        $("notice").textContent =
+          "Prices are not pulled live. Open Kayak or Google Flights for a date, then type the price you see. " +
+          "The cheapest date is highlighted. The estimate is a typical range from route pages.";
         render();
       } catch (err) {
-        listEl.innerHTML = `
-          <div class="state error">Could not load items.
-            <div><button id="retry" type="button">Try again</button></div>
-          </div>`;
-        document.getElementById("retry").addEventListener("click", load);
+        $("notice").textContent = "Something went wrong.";
+        listEl.innerHTML = `<div class="state error">Could not load flights (${esc(err.message)}).
+          <div><button class="retry" id="retry" type="button">Try again</button></div></div>`;
+        $("retry").addEventListener("click", load);
       }
     }
 
-    document.getElementById("q").addEventListener("input", render);
-    document.getElementById("status").addEventListener("change", render);
+    ["origin", "dest", "month", "nights"].forEach((id) => $(id).addEventListener("change", load));
     load();
   </script>
 </body>
