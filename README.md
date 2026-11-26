@@ -17,6 +17,13 @@ netlify.toml                    # Build settings; included_files bundles the dat
 - Prices are **not live**. Use the Kayak / Google Flights buttons, then type the price you see. The cheapest date is highlighted. Typed prices are stored in your browser only.
 - To share prices across devices, add them to `data/flights.json` under `prices` (key = departure date, value = EUR) and push.
 
+## Automatic prices (optional)
+1. Sign up at Travelpayouts and connect the Aviasales program to get a token.
+2. In Netlify: *Site configuration → Environment variables*, add `TRAVELPAYOUTS_TOKEN`, then redeploy.
+3. The function then fills in the cheapest recent round-trip fare per departure day (stays within 2 nights of the chosen length). Data comes from recent Aviasales searches, so some days may be empty. Type prices for those yourself.
+
+The API call is unverified against the live service (it could not be reached from the build sandbox). If prices don't appear, check the function logs in Netlify.
+
 ## Run locally
 ```bash
 npx netlify-cli dev
