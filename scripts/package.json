@@ -1,0 +1,17 @@
+{
+  "name": "the-traveler-scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Daily price scraper for The Traveler.",
+  "scripts": {
+    "scrape": "node scrape-prices.mjs",
+    "scrape:subset": "node scrape-prices.mjs --dates 2027-04-01,2027-04-07,2027-04-15"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

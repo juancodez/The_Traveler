@@ -128,13 +128,19 @@
     }
     let saved = {};
 
+    // Treat 0 and negative as "not set" so a stray input doesn't claim to be the cheapest.
+    function savedPrice(dep) {
+      const v = saved[dep];
+      return typeof v === "number" && v > 0 ? v : null;
+    }
     function priceOf(row) {
-      if (saved[row.departure] != null) return saved[row.departure];
-      return row.price;
+      const s = savedPrice(row.departure);
+      if (s != null) return s;
+      return row.price != null && row.price > 0 ? row.price : null;
     }
     // Fares with a different stay length are shown but not counted as "cheapest".
     function counts(row) {
-      return saved[row.departure] != null || (row.price != null && row.stayMatch !== false);
+      return savedPrice(row.departure) != null || (row.price != null && row.price > 0 && row.stayMatch !== false);
     }
     function money(n) { return "€" + Math.round(n).toLocaleString("en-GB"); }
 
@@ -157,13 +163,13 @@
         <tr class="${best && r.departure === best.r.departure ? "best" : ""}">
           <td>${esc(r.weekday)} ${esc(r.departure)}${best && r.departure === best.r.departure ? '<span class="tag">Cheapest</span>' : ""}</td>
           <td>${esc(r.return)}</td>
-          <td>${saved[r.departure] == null && r.price != null
+          <td>${savedPrice(r.departure) == null && r.price != null && r.price > 0
                 ? `<strong class="auto-price">${money(r.price)}</strong><span class="src">${r.source === "api" ? "auto" : "saved"}</span>`
                 : ""}
               <input class="price-in" type="number" min="0" inputmode="numeric"
-                placeholder="${r.price != null ? "Edit" : "€"}"
+                placeholder="${r.price != null && r.price > 0 ? "Edit" : "€"}"
                 aria-label="Price in euros for departure ${esc(r.departure)}"
-                data-date="${esc(r.departure)}" value="${saved[r.departure] != null ? saved[r.departure] : ""}"></td>
+                data-date="${esc(r.departure)}" value="${savedPrice(r.departure) != null ? savedPrice(r.departure) : ""}"></td>
           <td class="muted">${r.price != null && r.source === "api" ? `${r.stayMatch === false ? `<span class="warn">Different stay: back ${esc(r.apiReturn)}, </span>` : ""}${r.stayNights} nights${r.airline ? ", " + esc(r.airline) : ""}${r.transfers != null ? ", " + r.transfers + " stop" + (r.transfers === 1 ? "" : "s") : ""}` : ""}</td>
           <td>
             <a class="btn" href="${esc(r.kayak)}" target="_blank" rel="noopener noreferrer">Kayak</a>
@@ -192,8 +198,9 @@
       const input = e.target.closest("input.price-in");
       if (!input) return;
       const v = input.value.trim();
-      if (v === "" || !(Number(v) >= 0)) delete saved[input.dataset.date];
-      else saved[input.dataset.date] = Number(v);
+      const n = Number(v);
+      if (v === "" || !Number.isFinite(n) || n <= 0) delete saved[input.dataset.date];
+      else saved[input.dataset.date] = n;
       writeSaved(saved);
       render();
     });

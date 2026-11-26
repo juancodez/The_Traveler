@@ -1,0 +1,62 @@
+name: Update flight prices
+
+on:
+  schedule:
+    # Daily at 05:17 UTC (odd minute to dodge other-cron pileups)
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+    inputs:
+      dates:
+        description: "Comma-separated YYYY-MM-DD subset (blank = all)"
+        required: false
+        default: ""
+
+concurrency:
+  group: update-prices
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scripts/package-lock.json
+
+      - name: Install scripts deps
+        working-directory: scripts
+        run: npm ci || npm install
+
+      - name: Install Playwright chromium
+        working-directory: scripts
+        run: npx playwright install --with-deps chromium
+
+      - name: Scrape prices
+        working-directory: scripts
+        run: |
+          if [ -n "${{ github.event.inputs.dates }}" ]; then
+            node scrape-prices.mjs --dates "${{ github.event.inputs.dates }}"
+          else
+            node scrape-prices.mjs
+          fi
+
+      - name: Commit if changed
+        run: |
+          git config user.name "price-bot"
+          git config user.email "price-bot@users.noreply.github.com"
+          if git diff --quiet data/flights.json; then
+            echo "No price changes."
+          else
+            git add data/flights.json
+            git commit -m "Update flight prices ($(date -u +%Y-%m-%d))"
+            git push
+          fi
