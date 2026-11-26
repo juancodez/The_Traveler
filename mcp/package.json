@@ -1,0 +1,20 @@
+{
+  "name": "the-traveler-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server exposing The Traveler's flight search as tools.",
+  "main": "server.js",
+  "bin": {
+    "the-traveler-mcp": "server.js"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
