@@ -1,0 +1,7 @@
+[
+  { "id": "PRJ-001", "name": "Onboarding redesign", "owner": "Ana", "status": "In progress", "progress": 62, "updated": "2026-11-20" },
+  { "id": "PRJ-002", "name": "Design system audit", "owner": "Luis", "status": "Done", "progress": 100, "updated": "2026-11-18" },
+  { "id": "PRJ-003", "name": "AI assistant prototype", "owner": "Marta", "status": "Blocked", "progress": 35, "updated": "2026-11-24" },
+  { "id": "PRJ-004", "name": "Usability test, checkout", "owner": "Ana", "status": "Not started", "progress": 0, "updated": "2026-11-25" },
+  { "id": "PRJ-005", "name": "Accessibility review", "owner": "Luis", "status": "In progress", "progress": 80, "updated": "2026-11-23" }
+]
