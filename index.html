@@ -164,7 +164,7 @@
           <td>${esc(r.weekday)} ${esc(r.departure)}${best && r.departure === best.r.departure ? '<span class="tag">Cheapest</span>' : ""}</td>
           <td>${esc(r.return)}</td>
           <td>${savedPrice(r.departure) == null && r.price != null && r.price > 0
-                ? `<strong class="auto-price">${money(r.price)}</strong><span class="src">${r.source === "api" ? "auto" : "saved"}</span>`
+                ? `<strong class="auto-price">${money(r.price)}</strong><span class="src">auto</span>`
                 : ""}
               <input class="price-in" type="number" min="0" inputmode="numeric"
                 placeholder="${r.price != null && r.price > 0 ? "Edit" : "€"}"
@@ -219,17 +219,12 @@
         saved = readSaved();
         $("route-line").textContent =
           `Round trips: ${data.origin} to ${data.dest}, ${data.nights} nights, departing ${data.month}`;
-        const msgs = {
-          ok: "Prices marked auto are the cheapest recent round-trip fares found by Aviasales (cached, not a booking quote). " +
-              "Dates without a price had no recent data: check Kayak or Google Flights and type it in.",
-          no_token: "Automatic prices are off (no API token set on the server). Open Kayak or Google Flights for a date and type the price you see.",
-          error: "Automatic prices are unavailable right now. Check Kayak or Google Flights and type the price you see.",
-        };
-        let msg = msgs[data.autoPrices] || msgs.no_token;
-        if (data.autoPrices === "ok") {
-          msg = `Aviasales returned ${data.apiFares} recent fares; ${data.apiMatchedDays} dates match a ~${data.nights}-night stay. ` + msg;
-        }
-        $("notice").textContent = msg;
+        const autoRows = data.rows.filter((r) => r.price != null && r.price > 0);
+        const scraperMsg = `Prices marked auto are scraped from Google Flights by a daily GitHub Actions job ` +
+          `and committed to data/flights.json. Currently ${autoRows.length} of ${data.count} dates have a price. ` +
+          `Dates without one were rate-limited this round — they'll fill in on the next run, or type a value yourself to override. ` +
+          `Confirm on Kayak or Google Flights before booking.`;
+        $("notice").textContent = scraperMsg;
         render();
       } catch (err) {
         $("notice").textContent = "Something went wrong.";
