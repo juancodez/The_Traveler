@@ -58,6 +58,8 @@ exports.handler = async (event) => {
       price,
       source: manual != null ? "file" : auto ? "api" : null,
       stayNights: auto ? auto.stayNights : null,
+      apiReturn: auto ? auto.returnDate : null,
+      stayMatch: manual != null ? true : auto ? auto.stayMatch : null,
       airline: auto ? auto.airline : null,
       transfers: auto ? auto.transfers : null,
       kayak: `https://www.kayak.de/flights/${origin}-${dest}/${depStr}/${retStr}?sort=price_a`,
@@ -71,6 +73,8 @@ exports.handler = async (event) => {
     estimate: data.estimate || null,
     autoPrices: api.status, // "ok" | "no_token" | "error"
     autoPricesMessage: api.message || null,
+    apiFares: api.fares ?? null,
+    apiMatchedDays: api.matchedDays ?? null,
     count: rows.length,
     rows,
   }, api.status === "ok" ? "public, max-age=900" : "no-store");
@@ -98,18 +102,27 @@ async function fetchApiPrices({ origin, dest, month, nights }) {
     const body = await res.json();
     const list = Array.isArray(body.data) ? body.data : [];
 
-    const byDate = {};
+    // Per departure day: best fare with a stay within +/-2 nights of the request.
+    // If none, keep the cheapest fare with any stay length as a labelled fallback.
+    const close = {};
+    const any = {};
     for (const t of list) {
       if (!t.departure_at || !t.return_at || !Number.isFinite(Number(t.price))) continue;
       const dep = String(t.departure_at).slice(0, 10);
       const stay = Math.round((Date.parse(String(t.return_at).slice(0, 10)) - Date.parse(dep)) / 86400000);
-      if (Math.abs(stay - nights) > 2) continue;
-      const price = Number(t.price);
-      if (!byDate[dep] || price < byDate[dep].price) {
-        byDate[dep] = { price, stayNights: stay, airline: t.airline || null, transfers: t.transfers ?? null };
-      }
+      if (!(stay > 0)) continue;
+      const fare = {
+        price: Number(t.price), returnDate: String(t.return_at).slice(0, 10), stayNights: stay, stayMatch: Math.abs(stay - nights) <= 2,
+        airline: t.airline || null, transfers: t.transfers ?? null,
+      };
+      const bucket = fare.stayMatch ? close : any;
+      if (!bucket[dep] || fare.price < bucket[dep].price) bucket[dep] = fare;
     }
-    return { status: "ok", byDate };
+    const byDate = { ...any, ...close };
+    const matched = Object.keys(close).length;
+    console.log(`price API: ${list.length} fares returned, ${matched} days with ~${nights}-night stays, ` +
+      `${Object.keys(byDate).length - matched} days with other stays`);
+    return { status: "ok", byDate, fares: list.length, matchedDays: matched };
   } catch (err) {
     console.error("price API failed", err);
     return { status: "error", message: "Automatic prices unavailable right now.", byDate: {} };
