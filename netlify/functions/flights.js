@@ -1,7 +1,7 @@
 // GET /.netlify/functions/flights?origin=BER&dest=BUE&month=2027-04&nights=13
 // Builds one round-trip row per departure day of the month, with live-search
 // links (Kayak, Google Flights) and any verified price from data/flights.json.
-// If TRAVELPAYOUTS_TOKEN is set (Netlify environment variable), cheapest cached
+// If TRAVELPAYOUTS_API_TOKEN (or TRAVELPAYOUTS_TOKEN) is set (Netlify environment variable), cheapest cached
 // round-trip prices from the Aviasales Data API fill in automatically. Otherwise,
 // or if the API fails, rows come back without a price for manual entry.
 const fs = require("fs");
@@ -80,7 +80,7 @@ exports.handler = async (event) => {
 // Matches stays within +/-2 nights of the requested length. Data is cached from
 // recent user searches, so some days may have no price.
 async function fetchApiPrices({ origin, dest, month, nights }) {
-  const token = process.env.TRAVELPAYOUTS_TOKEN;
+  const token = process.env.TRAVELPAYOUTS_API_TOKEN || process.env.TRAVELPAYOUTS_TOKEN;
   if (!token) return { status: "no_token", byDate: {} };
 
   try {
