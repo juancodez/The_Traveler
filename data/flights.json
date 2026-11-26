@@ -1,5 +1,14 @@
 {
   "_comment": "Real prices you have seen, keyed by departure date (YYYY-MM-DD), in EUR for a round trip. Leave empty until you have a verified price. Example: \"2027-04-07\": 812",
-  "estimate": { "min": 850, "max": 950, "currency": "EUR", "note": "Typical low round-trip fares from aggregator route pages (Skyscanner, Lufthansa, Kayak). Not a live quote." },
-  "prices": {}
+  "estimate": {
+    "min": 850,
+    "max": 950,
+    "currency": "EUR",
+    "note": "Typical low round-trip fares from aggregator route pages (Skyscanner, Lufthansa, Kayak). Not a live quote."
+  },
+  "prices": {
+    "2027-04-01": 983,
+    "2027-04-15": 983,
+    "2027-04-30": 986
+  }
 }
